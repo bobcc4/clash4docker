@@ -1,8 +1,8 @@
-# glash
+# glash介绍
 
 🚀 基于最新 **Mihomo** 内核，内置 Dashboard 的 Clash Docker 镜像
 
-## 特性
+## 核心特性
 
 - ✅ Mihomo (Clash Meta)最新内核
 - ✅ MetacubexD Web Dashboard 内置
@@ -282,8 +282,7 @@ https://docker.apiba.cn
 
 - [Mihomo](https://github.com/MetaCubeX/mihomo) - 强大的代理内核
 - [MetacubexD](https://github.com/MetaCubeX/metacubexd) - 现代化 Web Dashboard
-- [meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat) - GeoIP & GeoSite 数据库
-
+  
 ## License
 
 MIT
