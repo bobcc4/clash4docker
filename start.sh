@@ -203,7 +203,7 @@ inject_tun() {
         log_error "❌ 无法创建临时文件"
         return 1
     fi
-    awk '/^tun:/{skip=1; next} skip && /^[^ \t]/{skip=0} !skip{print}' "${config}" > "${temp_file}"
+    awk '/^tun:/{skip=1; next} skip && /^[a-zA-Z]/{skip=0} !skip{print}' "${config}" > "${temp_file}"
     cp -f "${temp_file}" "${config}"
     rm -f "${temp_file}"
 
