@@ -4,7 +4,8 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/gangz1o/clash4docker?style=for-the-badge)
 ![GitHub repo size](https://img.shields.io/github/repo-size/gangz1o/clash4docker?style=for-the-badge)
 ![GitHub issues](https://img.shields.io/github/issues/gangz1o/clash4docker?style=for-the-badge)
-![Docker Pulls](https://img.shields.io/docker/pulls/gangz1o/clash4docker?style=for-the-badge)
+![Docker Pulls](https://img.shields.io/docker/pulls/gangz1o/glash?style=for-the-badge)
+
 🚀 基于最新 **Mihomo** 内核，内置 Dashboard 的 Clash Docker 镜像
 
 ## 核心特性
