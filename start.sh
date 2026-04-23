@@ -184,6 +184,45 @@ update_secret() {
     log_info "✅ secret 已更新"
 }
 
+# 确保配置文件中包含 unified-delay 和 tcp-concurrent 设置
+ensure_unified_delay_and_tcp_concurrent() {
+    local config="$1"
+    
+    log_info "🔗 正在确保配置文件中包含 unified-delay 和 tcp-concurrent 设置..."
+    
+    # 处理 unified-delay
+    if grep -qE "^unified-delay:" "${config}"; then
+        sed_inplace "s/^unified-delay:.*$/unified-delay: true/" "${config}"
+    else
+        # 尝试在 secret 后面添加（如果存在 secret）
+        if grep -qE "^secret:" "${config}"; then
+            sed_inplace "/^secret:/a unified-delay: true" "${config}"
+        elif grep -qE "^external-controller:" "${config}"; then
+            sed_inplace "/^external-controller:/a unified-delay: true" "${config}"
+        else
+            sed_inplace "1i unified-delay: true" "${config}"
+        fi
+    fi
+    
+    # 处理 tcp-concurrent
+    if grep -qE "^tcp-concurrent:" "${config}"; then
+        sed_inplace "s/^tcp-concurrent:.*$/tcp-concurrent: true/" "${config}"
+    else
+        # 尝试在 unified-delay 后面添加
+        if grep -qE "^unified-delay:" "${config}"; then
+            sed_inplace "/^unified-delay:/a tcp-concurrent: true" "${config}"
+        elif grep -qE "^secret:" "${config}"; then
+            sed_inplace "/^secret:/a tcp-concurrent: true" "${config}"
+        elif grep -qE "^external-controller:" "${config}"; then
+            sed_inplace "/^external-controller:/a tcp-concurrent: true" "${config}"
+        else
+            sed_inplace "1i tcp-concurrent: true" "${config}"
+        fi
+    fi
+    
+    log_info "✅ unified-delay 和 tcp-concurrent 设置已确保为 true"
+}
+
 # 注入 TUN 模式配置
 # 参数: config, tun_enabled (true/false)
 # 若 tun_enabled 为空则不做任何修改
@@ -333,6 +372,9 @@ update_subscription() {
             update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
         fi
 
+        # 确保统一延迟和并发连接
+        ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
+
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         
@@ -454,6 +496,8 @@ if [ -n "${SUB_URL}" ]; then
             if [ -n "${ALLOW_LAN}" ]; then
                 update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
             fi
+            # 确保统一延迟和并发连接
+            ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
             # 注入 tun 配置
             inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
             ensure_external_controller "${CONFIG_FILE}"
@@ -500,6 +544,8 @@ if [ -n "${SUB_URL}" ]; then
         if [ -n "${ALLOW_LAN}" ]; then
             update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
         fi
+        # 确保统一延迟和并发连接
+        ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         ensure_external_controller "${CONFIG_FILE}"
@@ -544,6 +590,9 @@ if [ -n "${SUB_URL}" ]; then
             update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
         fi
         
+        # 确保统一延迟和并发连接
+        ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
+        
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         
@@ -573,6 +622,9 @@ else
     if [ -n "${ALLOW_LAN}" ]; then
         update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
     fi
+    
+    # 确保统一延迟和并发连接
+    ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
     
     # 注入 tun 配置
     inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
