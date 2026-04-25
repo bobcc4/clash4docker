@@ -185,42 +185,62 @@ update_secret() {
 }
 
 # 确保配置文件中包含 unified-delay 和 tcp-concurrent 设置
+force_boolean_key_true_preserve_comment() {
+    local config="$1"
+    local key="$2"
+    local escaped_key
+
+    escaped_key=$(printf '%s\n' "${key}" | sed 's/[][\/.^$*]/\\&/g')
+    sed_inplace "/^[[:space:]]*${escaped_key}:[[:space:]]*/{
+s/^\([[:space:]]*${escaped_key}:[[:space:]]*\)[^#]*\([[:space:]]*#.*\)\{0,1\}$/\1true\2/
+}" "${config}"
+}
+
 ensure_unified_delay_and_tcp_concurrent() {
     local config="$1"
+    local force_override="${FORCE_UNIFIED_DELAY_AND_TCP_CONCURRENT:-false}"
     
     log_info "🔗 正在确保配置文件中包含 unified-delay 和 tcp-concurrent 设置..."
     
     # 处理 unified-delay
-    if grep -qE "^unified-delay:" "${config}"; then
-        sed_inplace "s/^unified-delay:.*$/unified-delay: true/" "${config}"
+    if grep -qE "^[[:space:]]*unified-delay:" "${config}"; then
+        if [ "${force_override}" = "true" ]; then
+            force_boolean_key_true_preserve_comment "${config}" "unified-delay"
+        fi
     else
         # 尝试在 secret 后面添加（如果存在 secret）
-        if grep -qE "^secret:" "${config}"; then
-            sed_inplace "/^secret:/a unified-delay: true" "${config}"
-        elif grep -qE "^external-controller:" "${config}"; then
-            sed_inplace "/^external-controller:/a unified-delay: true" "${config}"
+        if grep -qE "^[[:space:]]*secret:" "${config}"; then
+            sed_inplace "/^[[:space:]]*secret:/a unified-delay: true" "${config}"
+        elif grep -qE "^[[:space:]]*external-controller:" "${config}"; then
+            sed_inplace "/^[[:space:]]*external-controller:/a unified-delay: true" "${config}"
         else
             sed_inplace "1i unified-delay: true" "${config}"
         fi
     fi
     
     # 处理 tcp-concurrent
-    if grep -qE "^tcp-concurrent:" "${config}"; then
-        sed_inplace "s/^tcp-concurrent:.*$/tcp-concurrent: true/" "${config}"
+    if grep -qE "^[[:space:]]*tcp-concurrent:" "${config}"; then
+        if [ "${force_override}" = "true" ]; then
+            force_boolean_key_true_preserve_comment "${config}" "tcp-concurrent"
+        fi
     else
         # 尝试在 unified-delay 后面添加
-        if grep -qE "^unified-delay:" "${config}"; then
-            sed_inplace "/^unified-delay:/a tcp-concurrent: true" "${config}"
-        elif grep -qE "^secret:" "${config}"; then
-            sed_inplace "/^secret:/a tcp-concurrent: true" "${config}"
-        elif grep -qE "^external-controller:" "${config}"; then
-            sed_inplace "/^external-controller:/a tcp-concurrent: true" "${config}"
+        if grep -qE "^[[:space:]]*unified-delay:" "${config}"; then
+            sed_inplace "/^[[:space:]]*unified-delay:/a tcp-concurrent: true" "${config}"
+        elif grep -qE "^[[:space:]]*secret:" "${config}"; then
+            sed_inplace "/^[[:space:]]*secret:/a tcp-concurrent: true" "${config}"
+        elif grep -qE "^[[:space:]]*external-controller:" "${config}"; then
+            sed_inplace "/^[[:space:]]*external-controller:/a tcp-concurrent: true" "${config}"
         else
             sed_inplace "1i tcp-concurrent: true" "${config}"
         fi
     fi
     
-    log_info "✅ unified-delay 和 tcp-concurrent 设置已确保为 true"
+    if [ "${force_override}" = "true" ]; then
+        log_info "✅ unified-delay 和 tcp-concurrent 已检查；缺失项已补齐，存在项已强制设为 true"
+    else
+        log_info "✅ unified-delay 和 tcp-concurrent 已检查；仅为缺失项补齐默认值，不覆盖已有配置"
+    fi
 }
 
 # 注入 TUN 模式配置
