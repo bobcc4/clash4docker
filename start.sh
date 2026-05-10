@@ -300,21 +300,62 @@ EOF
     cp -f "${temp_file}" "${config}"
     rm -f "${temp_file}"
 
+# 精简版
+# dns:
+#   enable: true
+#   listen: 0.0.0.0:1053
+#   default-nameserver:
+#     - 223.5.5.5
+#     - 1.1.1.1
+#   enhanced-mode: fake-ip
+#   fake-ip-range: 198.18.0.1/16
+#   fake-ip-filter:
+#     - "*.lan"
+#     - "*.localhost"
+#   nameserver:
+#     - https://dns.alidns.com/dns-query
+#     - https://doh.pub/dns-query
+
     cat >> "${config}" << 'EOF'
 dns:
   enable: true
-  listen: 0.0.0.0:1053
+  listen: "0.0.0.0:1053"
+  prefer-h3: true
+  use-hosts: true
+  use-system-hosts: true
+  respect-rules: false
+  ipv6: true
   default-nameserver:
-    - 223.5.5.5
-    - 1.1.1.1
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
+    - "223.5.5.5"
+  enhanced-mode: "fake-ip"
+  fake-ip-range: "198.18.0.1/16"
   fake-ip-filter:
     - "*.lan"
-    - "*.localhost"
+    - "localhost.ptlogin2.qq.com"
+  nameserver-policy:
+    www.baidu.com: "114.114.114.114"
+    +.internal.crop.com: "10.0.0.1"
+    geosite:cn: "https://doh.pub/dns-query"
   nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
+    - "https://doh.pub/dns-query"
+    - "https://dns.alidns.com/dns-query"
+    - "system://"
+  fallback:
+    - "tls://8.8.4.4"
+    - "tls://1.1.1.1"
+  proxy-server-nameserver:
+    - "https://doh.pub/dns-query"
+  fallback-filter:
+    geoip: true
+    geoip-code: "CN"
+    geosite:
+      - "gfw"
+    ipcidr:
+      - "240.0.0.0/4"
+    domain:
+      - "+.google.com"
+      - "+.facebook.com"
+      - "+.youtube.com"
 EOF
     log_info "✅ DNS 配置已覆写"
     }
